@@ -63,9 +63,9 @@ const clients = new Map(); // Store connected users
 wss.on("connection", (ws, req: Request) => {
   console.log("New client connected");
   try {
-    const user = verifySocketToken(req); //  Use your middleware
+    // const user = verifySocketToken(req); //  Use your middleware
     //@ts-ignore
-    ws.user = user;   // attach to socket
+    // ws.user = user;   // attach to socket
 
     console.log("WebSocket connected:");
     clients.set(ws, {}); // will be updated in join
