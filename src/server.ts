@@ -48,8 +48,6 @@ app.get('/dashboard', (req, res) => { res.send(`Welcome `); });
  app.listen(PORT, () => {
   console.log(` Server running on port ${PORT}`);
 });
-// Replace app.listen() with server.listen()
-
 
 //  WebSocket (Chat) 
 // const wss = new WebSocketServer({ port: WS_PORT });
@@ -57,7 +55,7 @@ app.get('/dashboard', (req, res) => { res.send(`Welcome `); });
 const server = createServer(app);
 
 // Now, create the WebSocket server using the same HTTP server
-const wss = new WebSocketServer({ port: WS_PORT });
+const wss = new WebSocketServer({ server });
 const clients = new Map(); // Store connected users
 
 
@@ -66,7 +64,7 @@ wss.on("connection", (ws, req: Request) => {
   console.log("New client connected");
   try {
     const user = verifySocketToken(req); //  Use your middleware
-    @ts-ignore
+    //@ts-ignore
     ws.user = user;   // attach to socket
 
     console.log("WebSocket connected:");
@@ -127,7 +125,5 @@ wss.on("connection", (ws, req: Request) => {
   });
 });
 
-// server.listen(PORT, () => {
-//   console.log(`HTTP Server + WebSocket running on port ${PORT}`);
-// });
+
 console.log(` WebSocket server running on port ${WS_PORT}`);
