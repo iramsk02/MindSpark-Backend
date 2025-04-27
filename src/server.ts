@@ -52,7 +52,7 @@ app.get('/dashboard', (req, res) => { res.send(`Welcome `); });
 //  WebSocket (Chat) 
 // const wss = new WebSocketServer({ port: WS_PORT });
 // Create the HTTP server from your Express app
-const server = createServer(app);
+// const server = createServer(app);
 
 // Now, create the WebSocket server using the same HTTP server
 const wss = new WebSocketServer({ port: WS_PORT });
