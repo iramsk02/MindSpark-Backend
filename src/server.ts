@@ -57,7 +57,7 @@ app.get('/dashboard', (req, res) => { res.send(`Welcome `); });
 const server = createServer(app);
 
 // Now, create the WebSocket server using the same HTTP server
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ port: WS_PORT });
 const clients = new Map(); // Store connected users
 
 
@@ -127,7 +127,7 @@ wss.on("connection", (ws, req: Request) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`HTTP Server + WebSocket running on port ${PORT}`);
-});
+// server.listen(PORT, () => {
+//   console.log(`HTTP Server + WebSocket running on port ${PORT}`);
+// });
 console.log(` WebSocket server running on port ${WS_PORT}`);
