@@ -48,6 +48,10 @@ app.get('/dashboard', (req, res) => { res.send(`Welcome `); });
  app.listen(PORT, () => {
   console.log(` Server running on port ${PORT}`);
 });
+// Replace app.listen() with server.listen()
+server.listen(PORT, () => {
+  console.log(`HTTP Server + WebSocket running on port ${PORT}`);
+});
 
 //  WebSocket (Chat) 
 // const wss = new WebSocketServer({ port: WS_PORT });
