@@ -1,0 +1,26 @@
+# Compiled output
+dist
+build
+
+# Dependencies
+node_modules
+
+
+# IDE and editor files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Log and temp files
+*.log
+*.tmp
+
+# Environment files (if you have them)
+.env
