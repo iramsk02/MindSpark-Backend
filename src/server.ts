@@ -52,10 +52,10 @@ app.get('/dashboard', (req, res) => { res.send(`Welcome `); });
 //  WebSocket (Chat) 
 // const wss = new WebSocketServer({ port: WS_PORT });
 // Create the HTTP server from your Express app
-const server = createServer(app);
+// const server = createServer(app);
 
 // Now, create the WebSocket server using the same HTTP server
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({  port: WS_PORT });
 const clients = new Map(); // Store connected users
 
 
@@ -70,7 +70,7 @@ wss.on("connection", (ws, req: Request) => {
     console.log("WebSocket connected:");
     clients.set(ws, {}); // will be updated in join
   } catch (err) {
-    console.error("WebSocket auth failed:", err);
+    // console.error("WebSocket auth failed:", err);
     ws.close(4001, "Unauthorized");
     return;
   }

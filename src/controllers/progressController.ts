@@ -91,7 +91,7 @@ export const updateCourseProgress = async (req: Request, res: Response) => {
 
 export const getLeaderBoard = async (req: Request, res: Response) => {
   try {
-    const topUsers = await userModel.find()
+    const topUsers = await userModel.find({role:"student"})
       .select("name xp avatar") // Or whatever fields you want
       .sort({ xp: -1 })
       .limit(10); // Top 10
