@@ -55,7 +55,7 @@ app.get('/dashboard', (req, res) => { res.send(`Welcome `); });
 // const server = createServer(app);
 
 // Now, create the WebSocket server using the same HTTP server
-const wss = new WebSocketServer({  port: WS_PORT });
+const wss = new WebSocketServer({ port: WS_PORT });
 const clients = new Map(); // Store connected users
 
 
