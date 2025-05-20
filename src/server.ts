@@ -6,6 +6,7 @@ import connectDB from "./config/db";
 import { verifySocketToken } from "./middlewares/authMiddleware";
 import { Request, Response } from "express";
 import { createServer } from "http";
+import { IncomingMessage } from "http";
 
 
 // Import Routes
@@ -55,22 +56,102 @@ app.get('/dashboard', (req, res) => { res.send(`Welcome `); });
 // const server = createServer(app);
 
 // Now, create the WebSocket server using the same HTTP server
+// const wss = new WebSocketServer({ port: WS_PORT });
+// const clients = new Map(); // Store connected users
+
+
+
+// wss.on("connection", (ws, req: IncomingMessage) => {
+//   console.log("New client connected");
+//   try {
+//     const user = verifySocketToken(req); //  Use your middleware
+//     //@ts-ignore
+//     ws.user = user;   // attach to socket
+
+//     console.log("WebSocket connected:");
+//     clients.set(ws, {}); // will be updated in join
+//   } catch (err) {
+//     // console.error("WebSocket auth failed:", err);
+//     ws.close(4001, "Unauthorized");
+//     return;
+//   }
+
+//   ws.on("message", async (data) => {
+//     try {
+//       const parsed = JSON.parse(data.toString());
+//       const { type, courseId, message, user } = parsed;
+//       const userr = await userModel.findById({ _id: user })
+//       const username = userr?.name
+
+
+//       if (type === "join") {
+//         // Save client info
+//         clients.set(ws, { courseId, username });
+
+//         // Fetch previous chat from DB
+//         const chatHistory = await Messagemodel.find({ courseId }).sort({ createdAt: 1 });
+
+//         // Send chat history to this user only
+//         ws.send(JSON.stringify({ type: "history", data: chatHistory, username }));
+
+//         console.log(`${user} joined course ${courseId}`);
+//       }
+
+//       if (type === "message") {
+//         // Save message to DB
+//         await Messagemodel.create({ username, user, courseId, message });
+
+
+//         // Broadcast to others
+
+
+//         wss.clients.forEach((client) => {
+//           if (
+//             client.readyState === ws.OPEN &&
+//             clients.get(client)?.courseId === courseId
+//           ) {
+//             client.send(JSON.stringify({ type: "message", username, message }));
+//           }
+//         })
+//       }
+
+//     } catch (error) {
+//       console.error("Invalid message format", error);
+//     }
+//   });
+
+//   ws.on("close", () => {
+//     clients.delete(ws);
+//     console.log("Client disconnected");
+//   });
+// });
+
+
+// console.log(` WebSocket server running on port ${WS_PORT}`);
+// import { WebSocketServer } from "ws";
+// import { IncomingMessage } from "http";
+// import jwt from "jsonwebtoken";
+// import { userModel, Messagemodel } from "./models/schema";
+// import { verifySocketToken } from "./utils/token"; // Your token decoder
+import { WebSocket } from "ws";
+
+interface ClientInfo {
+  courseId: string;
+  username: string;
+}
+
+const clients = new Map<WebSocket, ClientInfo>();
 const wss = new WebSocketServer({ port: WS_PORT });
-const clients = new Map(); // Store connected users
 
-
-
-wss.on("connection", (ws, req: Request) => {
+wss.on("connection", async (ws, req: IncomingMessage) => {
   console.log("New client connected");
-  try {
-    const user = verifySocketToken(req); //  Use your middleware
-    //@ts-ignore
-    ws.user = user;   // attach to socket
 
-    console.log("WebSocket connected:");
-    clients.set(ws, {}); // will be updated in join
+  try {
+    const decodedUser = verifySocketToken(req);
+    // @ts-ignore
+    ws.user = decodedUser;
+    clients.set(ws, {} as ClientInfo); // initially empty
   } catch (err) {
-    // console.error("WebSocket auth failed:", err);
     ws.close(4001, "Unauthorized");
     return;
   }
@@ -78,44 +159,39 @@ wss.on("connection", (ws, req: Request) => {
   ws.on("message", async (data) => {
     try {
       const parsed = JSON.parse(data.toString());
-      const { type, courseId, message, user } = parsed;
-      const userr = await userModel.findById({ _id: user })
-      const username = userr?.name
+      const { type, courseId, message } = parsed;
 
+      // @ts-ignore
+      const userId = ws.user?.id;
+      const userr = await userModel.findById(userId);
+      if (!userr || !userr.name) return;
+      const username = userr.name;
 
       if (type === "join") {
-        // Save client info
         clients.set(ws, { courseId, username });
 
-        // Fetch previous chat from DB
         const chatHistory = await Messagemodel.find({ courseId }).sort({ createdAt: 1 });
 
-        // Send chat history to this user only
         ws.send(JSON.stringify({ type: "history", data: chatHistory, username }));
-
-        console.log(`${user} joined course ${courseId}`);
+        console.log(`${username} joined course ${courseId}`);
       }
 
       if (type === "message") {
-        // Save message to DB
-        await Messagemodel.create({ username, user, courseId, message });
-
-
-        // Broadcast to others
-
+        await Messagemodel.create({ username, user: userId, courseId, message });
 
         wss.clients.forEach((client) => {
+          const info = clients.get(client as WebSocket);
           if (
-            client.readyState === ws.OPEN &&
-            clients.get(client)?.courseId === courseId
+            client.readyState === WebSocket.OPEN &&
+            info?.courseId === courseId
           ) {
             client.send(JSON.stringify({ type: "message", username, message }));
           }
-        })
+        });
       }
 
-    } catch (error) {
-      console.error("Invalid message format", error);
+    } catch (err) {
+      console.error("Invalid message format", err);
     }
   });
 
@@ -125,5 +201,4 @@ wss.on("connection", (ws, req: Request) => {
   });
 });
 
-
-console.log(` WebSocket server running on port ${WS_PORT}`);
+console.log(`✅ WebSocket server running on port ${WS_PORT}`);
